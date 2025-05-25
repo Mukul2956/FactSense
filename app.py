@@ -19,7 +19,7 @@ from transformers import (
 from datasets import Dataset
 import evaluate
 
-st.set_page_config(page_title="📰 Fake News Detector")  # MUST be before any st.write or widgets
+st.set_page_config(page_title="📰 Fake News Detector")
 
 metric = evaluate.load("accuracy")
 

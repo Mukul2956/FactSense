@@ -33,6 +33,7 @@ fake_app/
 ├── app.py # Streamlit web app
 ├── Fake.csv # Fake news dataset
 ├── True.csv # Real news dataset
+├── requirements.txt # requirements to install
 ├── saved_model/ # Trained BERT model (ignored in GitHub)
 ├── results # stored checkpoints (for model parameters, weights, etc)
 ├── .gitignore # Ignoring large files and venv

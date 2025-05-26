@@ -75,7 +75,7 @@ def train_model():
         output_dir="./results",
         per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
-        num_train_epochs=2,
+        num_train_epochs=4,
         eval_strategy="epoch",
         save_strategy="epoch",
         logging_dir="./logs",
@@ -101,7 +101,7 @@ def train_model():
 
 # App UI
 
-st.title("📰 Fake News Detection (Improved)")
+st.title("📰 Fake News Detection ")
 
 if st.button("Train Model"):
     with st.spinner("Training..."):

@@ -101,7 +101,7 @@ def train_model():
 
 # App UI
 
-st.title("📰 Fake News Detection ")
+st.title("📰 FactSense ")
 
 if st.button("Train Model"):
     with st.spinner("Training..."):

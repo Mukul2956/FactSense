@@ -72,7 +72,6 @@ pip install transformers datasets evaluate scikit-learn
 streamlit run app.py
 🧪 Example Predictions
 Input Text	Prediction	Confidence
-"NASA confirms presence of water on the sunlit surface of the Moon."	✅ Real News	REAL: 0.92
 "The Indian government announced a 6.5% GDP growth for the fiscal year, citing strong domestic demand." ✅ Real News	REAL: 0.99
 "Bill Gates caught hiding microchips in vaccines, says anonymous source."	🚫 Fake News	FAKE: 0.88
 

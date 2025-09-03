@@ -1,8 +1,9 @@
 streamlit==1.30.0
 pandas
 scikit-learn
-torch==2.0.1+cpu
+torch==2.8.0
 transformers
 datasets
 evaluate
 accelerate
+

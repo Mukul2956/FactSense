@@ -1,31 +1,20 @@
-import sys
-print(sys.executable)
-
+import os
+from pathlib import Path
 import streamlit as st
 import pandas as pd
 import re
 import torch
-print(torch.__version__)
-print(torch.cuda.is_available())
-print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "No GPU detected")
-
-from sklearn.metrics import classification_report
-from transformers import (
-    BertTokenizerFast,
-    BertForSequenceClassification,
-    Trainer,
-    TrainingArguments
-)
+from transformers import BertTokenizerFast, BertForSequenceClassification, Trainer, TrainingArguments
 from datasets import Dataset
 import evaluate
 
-st.set_page_config(page_title="📰 Fake News Detector")
+st.set_page_config(page_title="📰 FactSense")
 
-metric = evaluate.load("accuracy")
+# Detect if running locally
+is_local = os.environ.get("RENDER") is None  # True if local
 
-# Device check
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+# Device (CPU-only for Render)
+device = torch.device("cpu")
 st.write(f"Using device: {device}")
 
 # Preprocessing
@@ -34,7 +23,7 @@ def preprocess_text(text):
     text = re.sub(r"[^\w\s]", "", text)
     return text.strip().lower()
 
-# Load and preprocess
+# Load data (for training)
 def load_data():
     df_fake = pd.read_csv("Fake.csv")
     df_true = pd.read_csv("True.csv")
@@ -44,15 +33,34 @@ def load_data():
     df['text'] = (df['title'] + " " + df['text']).apply(preprocess_text)
     return Dataset.from_pandas(df[['text', 'label']].dropna())
 
-# Tokenize
-tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased')
+# Tokenizer
+MODEL_DIR = Path("saved_model")
+MODEL_NAME = "bert-base-uncased"
+
+if not MODEL_DIR.exists():
+    st.info("Downloading BERT model for the first time...")
+    MODEL_DIR.mkdir(exist_ok=True)
+    tokenizer = BertTokenizerFast.from_pretrained(MODEL_NAME)
+    model = BertForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=2)
+    tokenizer.save_pretrained(MODEL_DIR)
+    model.save_pretrained(MODEL_DIR)
+else:
+    tokenizer = BertTokenizerFast.from_pretrained(MODEL_DIR)
+    model = BertForSequenceClassification.from_pretrained(MODEL_DIR)
+
+model.to(device)
+model.eval()
+
+# Tokenization function
 def tokenize_function(examples):
     return tokenizer(examples["text"], truncation=True, padding=True)
 
 # Metrics
+metric = evaluate.load("accuracy")
 def compute_metrics(pred):
     labels = pred.label_ids
     preds = pred.predictions.argmax(-1)
+    from sklearn.metrics import classification_report
     report = classification_report(labels, preds, output_dict=True)
     return {
         "precision": report["weighted avg"]["precision"],
@@ -60,7 +68,7 @@ def compute_metrics(pred):
         "f1": report["weighted avg"]["f1-score"],
     }
 
-# Train function
+# Train function (local only)
 def train_model():
     dataset = load_data()
     dataset = dataset.map(tokenize_function, batched=True)
@@ -68,7 +76,7 @@ def train_model():
     split = dataset.train_test_split(test_size=0.2)
     train_ds, eval_ds = split["train"], split["test"]
 
-    model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=2)
+    model = BertForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=2)
     model.to(device)
 
     args = TrainingArguments(
@@ -82,7 +90,6 @@ def train_model():
         report_to="none",
         load_best_model_at_end=True,
         metric_for_best_model="eval_f1",
-        fp16=True
     )
 
     trainer = Trainer(
@@ -99,24 +106,16 @@ def train_model():
     tokenizer.save_pretrained("saved_model")
     return model, tokenizer
 
-# App UI
+# Streamlit UI
+st.title("📰 FactSense – Fake News Detector")
 
-st.title("📰 FactSense ")
-
-if st.button("Train Model"):
+# Train button (local only)
+if is_local and st.button("Train Model"):
     with st.spinner("Training..."):
         model, tokenizer = train_model()
     st.success("Training complete!")
-else:
-    try:
-        tokenizer = BertTokenizerFast.from_pretrained("saved_model")
-        model = BertForSequenceClassification.from_pretrained("saved_model")
-        model.to(device)
-        model.eval()
-    except Exception as e:
-        st.error("No saved model found. Please train the model first.")
-        st.stop()
 
+# Text input for detection
 user_input = st.text_area("Enter a news headline or article:", height=200)
 if st.button("Detect"):
     if user_input.strip():

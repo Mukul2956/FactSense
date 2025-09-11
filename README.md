@@ -2,6 +2,8 @@
 
 **FactSense** is a powerful NLP-based web application that uses a fine-tuned BERT model to detect whether a news article is real or fake. Built with Hugging Face Transformers and deployed using Streamlit, it provides an interactive interface for real-time fake news detection.
 
+**Live Demo**: [FactSense Web App](https://factsense-2.onrender.com)
+
 ---
 
 ## 🚀 Features

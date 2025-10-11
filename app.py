@@ -14,11 +14,7 @@ from transformers import (
     TrainingArguments,
 )
 from datasets import Dataset
-import evaluate
-
 st.set_page_config(page_title="📰 Fake News Detector")
-
-metric = evaluate.load("accuracy")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 st.write(f"Using device: {device}")

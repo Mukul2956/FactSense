@@ -1,3 +1,10 @@
 streamlit==1.30.0
 requests
 python-dotenv
+pandas
+scikit-learn
+torch
+transformers
+datasets
+evaluate
+accelerate
